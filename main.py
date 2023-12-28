@@ -3,7 +3,6 @@ import numpy as np
 import math
 import sympy as sp
 
-
 def caesar_cipher(text, key):
     encrypted_text = ""
     for char in text:
@@ -17,8 +16,8 @@ def caesar_cipher(text, key):
     return encrypted_text
 
 
-# ------------------------------------------------------------------------------------------------------------
-# Caesar cipher decryption
+#------------------------------------------------------------------------------------------------------------
+#Caesar cipher decryption
 def caesar_decipher(ciphertext, key):
     decrypted_text = ""
     for char in ciphertext:
@@ -31,29 +30,29 @@ def caesar_decipher(ciphertext, key):
             decrypted_text += char
     return decrypted_text
 
-
-# ------------------------------------------------------------------------------------------------------------
-# one time pad encryption and decryption
-def Vernam(Plain, Key, Flag):
-    Plain = Plain.upper()
+#------------------------------------------------------------------------------------------------------------
+#one time pad encryption and decryption
+def Vernam(Plain,Key,Flag):
+    Plain=Plain.upper()
     Key = Key.upper()
-    result = ""
-    lengthK = len(Key)
-    lengthP = len(Plain)
+    result=""
+    lengthK=len(Key)
+    lengthP=len(Plain)
     for i in range(lengthP):
-        char = Plain[i]
+        char=Plain[i]
         if char.isalpha():
-            if (Flag):
+            if(Flag):
                 result += chr((ord(char) + ord(Key[i % lengthK]) - 2 * ord('A')) % 26 + ord('A'))
             else:
                 result += chr((ord(char) - ord(Key[i % lengthK]) - 2 * ord('A')) % 26 + ord('A'))
 
-        else:
-            result += char
+        else :
+            result+=char
     return result
 
 
-# ------------------------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------------------------------------
 
 # playfair encryption
 def prepare_input(text):
@@ -125,10 +124,9 @@ def playfair_encrypt(plaintext, key):
 
     return cipher_text
 
+#------------------------------------------------------------------------------------------------------------
 
-# ------------------------------------------------------------------------------------------------------------
-
-# playfair decryption
+#playfair decryption
 def prepare_input(text):
     # Remove spaces and convert to uppercase
     text = text.replace(" ", "").upper()
@@ -193,7 +191,7 @@ def playfair_decrypt(ciphertext, key):
     return plaintext
 
 
-# ------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------
 
 
 # Rail fence encryption
@@ -216,9 +214,7 @@ def encrypt_rail_fence(text: str, key: int) -> str:
             row -= 1
 
     return "".join(rail)
-
-
-# ------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------
 # Rail fence decryption
 def decrypt_rail_fence(cipher: str, key: int) -> str:
     rail: list[list[str]] = [['\n' for _ in range(len(cipher))] for _ in range(key)]
@@ -264,16 +260,17 @@ def decrypt_rail_fence(cipher: str, key: int) -> str:
     return result
 
 
-# ------------------------------------------------------------------------------------------------------------
-# hill encryption
+#------------------------------------------------------------------------------------------------------------
+#hill encryption
 def encrypt(plaintext, key):
+    
     det = int(np.round(np.linalg.det(key)))  # Calculate the determinant of the key matrix
     print(det)
     # Ensure the determinant is relatively prime to 26
     if np.gcd(det, 26) != 1:
         return "Key is not invertible. Decryption not possible \n,So we not support to encrypt with this key!"
-
-    plaintext = plaintext.replace(' ', '').upper()
+    
+    plaintext = plaintext.replace (' ', '').upper()
     n = len(key)
     if len(plaintext) % n != 0:
         plaintext += 'X' * (n - (len(plaintext) % n))
@@ -281,7 +278,7 @@ def encrypt(plaintext, key):
     ciphertext = ''
 
     for i in range(0, len(plaintext), n):
-        chunk = plaintext[i:i + n]
+        chunk = plaintext[i:i+n]
         chunk_indices = [ord(char) - ord('A') for char in chunk]
         transformed_chunk = np.dot(key, chunk_indices) % 26
         ciphertext += ''.join(chr(index + ord('A')) for index in transformed_chunk)
@@ -289,14 +286,13 @@ def encrypt(plaintext, key):
     return ciphertext
 
 
-# ------------------------------------------------------------------------------------------------------------
-# hill decryption
+#------------------------------------------------------------------------------------------------------------
+#hill decryption
 def mod_inverse(a, m):
     for x in range(1, m):
         if (a * x) % m == 1:
             return x
     return None
-
 
 # Function to decrypt the text
 def decrypt(ciphertext, key):
@@ -315,55 +311,54 @@ def decrypt(ciphertext, key):
 
     adjugate = sp.Matrix(key).adjugate()
     adjugate = np.array(adjugate.tolist(), dtype=int)
-
+    
     added_letter = n - (len(ciphertext) % n)
     # Perform matrix multiplication: det * adjugate
     inverse_key = (inverse_det * adjugate) % 26
     ciphertext += 'X' * (added_letter)
     plaintext = ''
     for i in range(0, len(ciphertext), n):
-        chunk = ciphertext[i:i + n]
+        chunk = ciphertext[i:i+n]
         chunk_indices = [ord(char) - ord('A') for char in chunk]
         transformed_chunk = np.dot(inverse_key, chunk_indices) % 26
         plaintext += ''.join(chr(index + ord('A')) for index in transformed_chunk)
 
     return plaintext[:-added_letter]
 
-
-# ------------------------------------------------------------------------------------------------------------
-# Row transposition encryption
+#------------------------------------------------------------------------------------------------------------
+#Row transposition encryption
 
 def encryptRow(plaintext, key):
     cipher = ""
     k_indx = 0
+
 
     col = len(key)
 
     if col == 0:
         print(" ")
         return " "
+    
 
     msg_len = float(len(plaintext))
     msg_lst = list(plaintext.upper())
     key_lst = sorted(list(key))
-
+    
     row = int(math.ceil(msg_len / col))
     fill_null = int((row * col) - msg_len)
     msg_lst.extend('x' * fill_null)
-    matrix = [msg_lst[i: i + col]
+    matrix = [msg_lst[i: i + col] 
               for i in range(0, len(msg_lst), col)]
 
     for _ in range(col):
         curr_idx = key.index(key_lst[k_indx])
-        cipher += ''.join([row[curr_idx]
+        cipher += ''.join([row[curr_idx] 
                            for row in matrix])
         k_indx += 1
 
     return cipher
-
-
-# ------------------------------------------------------------------------------------------------------------
-# Row transposition decryption
+#------------------------------------------------------------------------------------------------------------
+#Row transposition decryption
 
 
 def decryptRow(ciphertext, key):
@@ -377,7 +372,7 @@ def decryptRow(ciphertext, key):
     if col == 0:
         print(" ")
         return " "
-
+    
     row = int(math.ceil(msg_len / col))
 
     key_lst = sorted(list(key))
@@ -403,32 +398,39 @@ def decryptRow(ciphertext, key):
     for i in range(len(msg)):
         if msg[i].islower():
             count += 1
-
+    
     return msg[:-count]
 
 
 def main():
     st.markdown("<h3 style='text-align: center;'>  Cryptography System</h3>", unsafe_allow_html=True)
 
-    #     f1_co,f2_co, f5_co, f6_co
-    f5_co, cent_co, f4_co, f6_co = st.columns(4)
-    with cent_co:
-        st.image("images/p2.jpg", width=400)
 
+    
+    
+    
+#     f1_co,f2_co, f5_co, f6_co
+    f5_co, cent_co, f4_co,  f6_co= st.columns(4)
+    with cent_co:
+         st.image("images/p2.jpg", width=400)
+    
+
+    
+    
     algorithm_choice = st.sidebar.selectbox(
         "Choose an algorithm:",
-        ["Caesar Cipher", "One Time Pad Cipher", "Playfair Cipher", "Rail Fence Cipher", "Row transposition Cipher",
-         "Hill Cipher"],
+        ["Caesar Cipher", "One Time Pad Cipher", "Playfair Cipher", "Rail Fence Cipher", "Row transposition Cipher","Hill Cipher"],
     )
-
+    
     operation = st.radio("Choose operation:", ["Encryption", "Decryption"])
     Plain = st.text_input("Enter the text:")
+    
 
     if algorithm_choice == "Caesar Cipher":
         key = st.number_input("Enter the key (an integer):", value=1)
 
         if st.button("Submit"):
-            if not Plain.strip():
+            if not Plain.strip() :
                 st.write("Fill in all fields first")
             else:
                 if operation == "Encryption":
@@ -446,7 +448,7 @@ def main():
         if st.button("Submit"):
             if not Plain.strip() or not Key.strip():
                 st.write("Fill in all fields first")
-
+                
             else:
                 if operation == "Encryption":
                     result = Vernam(Plain, Key, True)
@@ -455,7 +457,7 @@ def main():
                     result = Vernam(Plain, Key, False)
                     st.write("Decrypted Result:", result)
 
-
+                    
     elif algorithm_choice == "Playfair Cipher":
         key = st.text_input("Enter the key (string):")
 
@@ -470,16 +472,17 @@ def main():
                     result = playfair_decrypt(Plain, key)
                     st.write("Decrypted Result:", result)
 
+                    
 
-
-
+        
 
     elif algorithm_choice == "Rail Fence Cipher":
-        key = st.number_input("Enter the key (int):", value=2)
-
+        key = st.number_input("Enter the key (int):",value=2)
+        
+        
         if st.button("Submit"):
-
-            if not Plain.strip():
+           
+            if not Plain.strip() :
                 st.write("Fill in all fields first")
             else:
                 if key > 0:
@@ -493,28 +496,28 @@ def main():
                     st.write("The key must be > 0")
 
 
-
+        
     elif algorithm_choice == "Row transposition Cipher":
         key = st.text_input("Enter the key (string):")
-
+        
         if st.button("Submit"):
-
-            if not Plain.strip():
+           
+            if not Plain.strip() :
                 st.write("Fill in all fields first")
             else:
-
+                
                 if operation == "Encryption":
                     result = encryptRow(Plain, key)
                     st.write("Encrypted Result:", result)
                 elif operation == "Decryption":
                     result = decryptRow(Plain, key)
                     st.write("Decrypted Result:", result)
-
-
-
+               
+                   
+        
 
     elif algorithm_choice == "Hill Cipher":
-        #         operation = st.radio("Choose operation:", ["Encryption", "Decryption"])
+#         operation = st.radio("Choose operation:", ["Encryption", "Decryption"])
         order = st.number_input("Enter the order of the key:", min_value=2, step=1)
         key = []
         st.write("Enter the key:")
@@ -522,10 +525,12 @@ def main():
             row = st.text_input(f"Enter row {i + 1} (contain {order} space-separated integers):")
             key.append(list(map(int, row.split())))
 
+        
+        
         if st.button("Submit"):
             if not Plain.strip():
                 st.write("Fill in all fields first")
-            else:
+            else :
                 key = np.array(key)
                 if operation == "Encryption":
                     result = encrypt(Plain, key)
@@ -533,6 +538,7 @@ def main():
                 elif operation == "Decryption":
                     result = decrypt(Plain, key)
                     st.write("Decrypted Result:", result)
+                    
 
 
 if __name__ == "__main__":
