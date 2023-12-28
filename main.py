@@ -3,7 +3,13 @@ import numpy as np
 import math
 import sympy as sp
 
+
+def remove_spaces(text):
+    return ''.join(char for char in text if char.isalnum())
+
+
 def caesar_cipher(text, key):
+    text = remove_spaces(text)
     encrypted_text = ""
     for char in text:
         if char.isalpha():
@@ -16,9 +22,10 @@ def caesar_cipher(text, key):
     return encrypted_text
 
 
-#------------------------------------------------------------------------------------------------------------
-#Caesar cipher decryption
+# ------------------------------------------------------------------------------------------------------------
+# Caesar cipher decryption
 def caesar_decipher(ciphertext, key):
+    ciphertext = remove_spaces(ciphertext)
     decrypted_text = ""
     for char in ciphertext:
         if char.isalpha():
@@ -30,33 +37,33 @@ def caesar_decipher(ciphertext, key):
             decrypted_text += char
     return decrypted_text
 
-#------------------------------------------------------------------------------------------------------------
-#one time pad encryption and decryption
-def Vernam(Plain,Key,Flag):
-    Plain=Plain.upper()
-    Key = Key.upper()
-    result=""
-    lengthK=len(Key)
-    lengthP=len(Plain)
+
+# ------------------------------------------------------------------------------------------------------------
+# one time pad encryption and decryption
+def Vernam(Plain, Key, Flag):
+    Plain = remove_spaces(Plain).upper()
+    Key = remove_spaces(Key).upper()
+    result = ""
+    lengthK = len(Key)
+    lengthP = len(Plain)
     for i in range(lengthP):
-        char=Plain[i]
+        char = Plain[i]
         if char.isalpha():
-            if(Flag):
+            if (Flag):
                 result += chr((ord(char) + ord(Key[i % lengthK]) - 2 * ord('A')) % 26 + ord('A'))
             else:
                 result += chr((ord(char) - ord(Key[i % lengthK]) - 2 * ord('A')) % 26 + ord('A'))
 
-        else :
-            result+=char
+        else:
+            result += char
     return result
 
 
-
-#------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------
 
 # playfair encryption
 def prepare_input(text):
-    text = text.replace(" ", "").upper()
+    text = remove_spaces(text).upper()
     text = text.replace("J", "I")
     return text
 
@@ -124,12 +131,13 @@ def playfair_encrypt(plaintext, key):
 
     return cipher_text
 
-#------------------------------------------------------------------------------------------------------------
 
-#playfair decryption
+# ------------------------------------------------------------------------------------------------------------
+
+# playfair decryption
 def prepare_input(text):
     # Remove spaces and convert to uppercase
-    text = text.replace(" ", "").upper()
+    text = remove_spaces(text).upper()
     # Replace 'J' with 'I'
     text = text.replace("J", "I")
     return text
@@ -191,12 +199,12 @@ def playfair_decrypt(ciphertext, key):
     return plaintext
 
 
-#------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------
 
 
 # Rail fence encryption
 def encrypt_rail_fence(text: str, key: int) -> str:
-    text_without_spaces = ''.join(char for char in text if char.isalnum())  # Omit spaces
+    text_without_spaces = remove_spaces(text)
     rail: list[str] = [""] * key
 
     dir_down = False
@@ -214,7 +222,9 @@ def encrypt_rail_fence(text: str, key: int) -> str:
             row -= 1
 
     return "".join(rail)
-#------------------------------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------------------------------
 # Rail fence decryption
 def decrypt_rail_fence(cipher: str, key: int) -> str:
     rail: list[list[str]] = [['\n' for _ in range(len(cipher))] for _ in range(key)]
@@ -260,17 +270,19 @@ def decrypt_rail_fence(cipher: str, key: int) -> str:
     return result
 
 
-#------------------------------------------------------------------------------------------------------------
-#hill encryption
+# ------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------
+# hill encryption
 def encrypt(plaintext, key):
-    
     det = int(np.round(np.linalg.det(key)))  # Calculate the determinant of the key matrix
     print(det)
     # Ensure the determinant is relatively prime to 26
     if np.gcd(det, 26) != 1:
         return "Key is not invertible. Decryption not possible \n,So we not support to encrypt with this key!"
-    
-    plaintext = plaintext.replace (' ', '').upper()
+
+    # Remove spaces from plaintext and convert to uppercase
+    plaintext = remove_spaces(plaintext).upper()
+
     n = len(key)
     if len(plaintext) % n != 0:
         plaintext += 'X' * (n - (len(plaintext) % n))
@@ -278,23 +290,24 @@ def encrypt(plaintext, key):
     ciphertext = ''
 
     for i in range(0, len(plaintext), n):
-        chunk = plaintext[i:i+n]
+        chunk = plaintext[i:i + n]
         chunk_indices = [ord(char) - ord('A') for char in chunk]
         transformed_chunk = np.dot(key, chunk_indices) % 26
         ciphertext += ''.join(chr(index + ord('A')) for index in transformed_chunk)
 
-    return ciphertext
+    # Return ciphertext in lowercase if the input was in lowercase
+    return ciphertext.lower() if plaintext.islower() else ciphertext
 
 
-#------------------------------------------------------------------------------------------------------------
-#hill decryption
+# hill decryption
+# hill decryption
 def mod_inverse(a, m):
     for x in range(1, m):
         if (a * x) % m == 1:
             return x
     return None
 
-# Function to decrypt the text
+
 def decrypt(ciphertext, key):
     # Check if the key is a square matrix
     if key.shape[0] != key.shape[1]:
@@ -311,126 +324,74 @@ def decrypt(ciphertext, key):
 
     adjugate = sp.Matrix(key).adjugate()
     adjugate = np.array(adjugate.tolist(), dtype=int)
-    
+
     added_letter = n - (len(ciphertext) % n)
     # Perform matrix multiplication: det * adjugate
     inverse_key = (inverse_det * adjugate) % 26
     ciphertext += 'X' * (added_letter)
+
+    # Remove spaces from ciphertext
+    ciphertext = remove_spaces(ciphertext)
+
     plaintext = ''
     for i in range(0, len(ciphertext), n):
-        chunk = ciphertext[i:i+n]
+        chunk = ciphertext[i:i + n]
         chunk_indices = [ord(char) - ord('A') for char in chunk]
         transformed_chunk = np.dot(inverse_key, chunk_indices) % 26
         plaintext += ''.join(chr(index + ord('A')) for index in transformed_chunk)
 
-    return plaintext[:-added_letter]
-
-#------------------------------------------------------------------------------------------------------------
-#Row transposition encryption
-
-def encryptRow(plaintext, key):
-    cipher = ""
-    k_indx = 0
+    # Return plaintext in lowercase if the input was in lowercase
+    return plaintext.lower() if ciphertext.islower() else plaintext[:-added_letter]
 
 
-    col = len(key)
+# ------------------------------------------------------------------------------------------------------------
+# monoalphabetic_substitution
+def monoalphabetic_substitution(text, key, decrypt=False):
+    text = remove_spaces(text).upper()
+    result = ""
 
-    if col == 0:
-        print(" ")
-        return " "
-    
+    if decrypt:
+        key = ''.join(sorted(key))  # Sort key for decryption
 
-    msg_len = float(len(plaintext))
-    msg_lst = list(plaintext.upper())
-    key_lst = sorted(list(key))
-    
-    row = int(math.ceil(msg_len / col))
-    fill_null = int((row * col) - msg_len)
-    msg_lst.extend('x' * fill_null)
-    matrix = [msg_lst[i: i + col] 
-              for i in range(0, len(msg_lst), col)]
+    for char in text:
+        if char.isalpha():
+            index = ord(char) - ord('A')
+            if decrypt:
+                result += chr(key.index(char) + ord('A'))
+            else:
+                result += key[index]
+        else:
+            result += char
 
-    for _ in range(col):
-        curr_idx = key.index(key_lst[k_indx])
-        cipher += ''.join([row[curr_idx] 
-                           for row in matrix])
-        k_indx += 1
+    return result
 
-    return cipher
-#------------------------------------------------------------------------------------------------------------
-#Row transposition decryption
+def monoalphabetic_substitution_decrypt(text, key):
+    return monoalphabetic_substitution(text, key, decrypt=True)
 
-
-def decryptRow(ciphertext, key):
-    msg = ""
-    k_indx = 0
-    msg_indx = 0
-    msg_len = float(len(ciphertext))
-    msg_lst = list(ciphertext)
-
-    col = len(key)
-    if col == 0:
-        print(" ")
-        return " "
-    
-    row = int(math.ceil(msg_len / col))
-
-    key_lst = sorted(list(key))
-
-    dec_cipher = []
-    for _ in range(row):
-        dec_cipher += [[''] * col]
-
-    for _ in range(col):
-        curr_idx = key.index(key_lst[k_indx])
-
-        for j in range(row):
-            dec_cipher[j][curr_idx] = msg_lst[msg_indx]
-            msg_indx += 1
-        k_indx += 1
-
-    try:
-        msg = ''.join(''.join(row) for row in dec_cipher)
-    except TypeError:
-        return "can't handle repeated letters"
-
-    count = 0
-    for i in range(len(msg)):
-        if msg[i].islower():
-            count += 1
-    
-    return msg[:-count]
-
-
+def remove_spaces(text):
+    return ''.join(char for char in text if char.isalnum())
 def main():
     st.markdown("<h3 style='text-align: center;'>  Cryptography System</h3>", unsafe_allow_html=True)
 
-
-    
-    
-    
-#     f1_co,f2_co, f5_co, f6_co
-    f5_co, cent_co, f4_co,  f6_co= st.columns(4)
+    #     f1_co,f2_co, f5_co, f6_co
+    f5_co, cent_co, f4_co, f6_co = st.columns(4)
     with cent_co:
-         st.image("images/p2.jpg", width=400)
-    
+        st.image("images/p2.jpg", width=400)
 
-    
-    
     algorithm_choice = st.sidebar.selectbox(
         "Choose an algorithm:",
-        ["Caesar Cipher", "One Time Pad Cipher", "Playfair Cipher", "Rail Fence Cipher", "Row transposition Cipher","Hill Cipher"],
+        ["Caesar Cipher", "Monoalphabetic Substitution","Playfair Cipher", "Hill Cipher",  "Rail Fence Cipher","One Time Pad Cipher",
+        ],
     )
-    
+
     operation = st.radio("Choose operation:", ["Encryption", "Decryption"])
     Plain = st.text_input("Enter the text:")
-    
 
     if algorithm_choice == "Caesar Cipher":
         key = st.number_input("Enter the key (an integer):", value=1)
 
         if st.button("Submit"):
-            if not Plain.strip() :
+            if not Plain.strip():
                 st.write("Fill in all fields first")
             else:
                 if operation == "Encryption":
@@ -439,25 +400,20 @@ def main():
                 elif operation == "Decryption":
                     result = caesar_decipher(Plain, int(key))
                     st.write("Decrypted Result:", result)
-
-
-
-    elif algorithm_choice == "One Time Pad Cipher":
-        Key = st.text_input("Enter the key (string):")
+    elif algorithm_choice == "Monoalphabetic Substitution":
+        key = st.text_input("Enter the substitution key (26 unique letters):").upper()
 
         if st.button("Submit"):
-            if not Plain.strip() or not Key.strip():
-                st.write("Fill in all fields first")
-                
+            if not Plain.strip() or not key.strip() or len(key) != 26 or not key.isalpha():
+                st.write("Invalid key. Please enter a valid substitution key.")
             else:
                 if operation == "Encryption":
-                    result = Vernam(Plain, Key, True)
-                    st.write("Encrypted Result:", result)
-                else:
-                    result = Vernam(Plain, Key, False)
-                    st.write("Decrypted Result:", result)
+                    result = monoalphabetic_substitution(Plain, key)
+                elif operation == "Decryption":
+                    monoalphabetic_substitution_decrypt(Plain,key)
 
-                    
+                st.write("Result:", result)
+
     elif algorithm_choice == "Playfair Cipher":
         key = st.text_input("Enter the key (string):")
 
@@ -471,18 +427,33 @@ def main():
                 elif operation == "Decryption":
                     result = playfair_decrypt(Plain, key)
                     st.write("Decrypted Result:", result)
+    elif algorithm_choice == "Hill Cipher":
+        #         operation = st.radio("Choose operation:", ["Encryption", "Decryption"])
+        order = st.number_input("Enter the order of the key:", min_value=2, step=1)
+        key = []
+        st.write("Enter the key:")
+        for i in range(order):
+            row = st.text_input(f"Enter row {i + 1} (contain {order} space-separated integers):")
+            key.append(list(map(int, row.split())))
 
-                    
-
-        
-
-    elif algorithm_choice == "Rail Fence Cipher":
-        key = st.number_input("Enter the key (int):",value=2)
-        
-        
         if st.button("Submit"):
-           
-            if not Plain.strip() :
+            if not Plain.strip():
+                st.write("Fill in all fields first")
+            else:
+                key = np.array(key)
+                if operation == "Encryption":
+                    result = encrypt(Plain, key)
+                    st.write("Encrypted Result:", result)
+                elif operation == "Decryption":
+                    Plain = Plain.upper()
+                    result = decrypt(Plain, key)
+                    st.write("Decrypted Result:", result)
+    elif algorithm_choice == "Rail Fence Cipher":
+        key = st.number_input("Enter the key (int):", value=2)
+
+        if st.button("Submit"):
+
+            if not Plain.strip():
                 st.write("Fill in all fields first")
             else:
                 if key > 0:
@@ -494,51 +465,21 @@ def main():
                         st.write("Decrypted Result:", result)
                 else:
                     st.write("The key must be > 0")
+    elif algorithm_choice == "One Time Pad Cipher":
+        Key = st.text_input("Enter the key (string):")
 
-
-        
-    elif algorithm_choice == "Row transposition Cipher":
-        key = st.text_input("Enter the key (string):")
-        
         if st.button("Submit"):
-           
-            if not Plain.strip() :
+            if not Plain.strip() or not Key.strip():
                 st.write("Fill in all fields first")
+
             else:
-                
                 if operation == "Encryption":
-                    result = encryptRow(Plain, key)
+                    result = Vernam(Plain, Key, True)
                     st.write("Encrypted Result:", result)
-                elif operation == "Decryption":
-                    result = decryptRow(Plain, key)
+                else:
+                    result = Vernam(Plain, Key, False)
                     st.write("Decrypted Result:", result)
-               
-                   
-        
 
-    elif algorithm_choice == "Hill Cipher":
-#         operation = st.radio("Choose operation:", ["Encryption", "Decryption"])
-        order = st.number_input("Enter the order of the key:", min_value=2, step=1)
-        key = []
-        st.write("Enter the key:")
-        for i in range(order):
-            row = st.text_input(f"Enter row {i + 1} (contain {order} space-separated integers):")
-            key.append(list(map(int, row.split())))
-
-        
-        
-        if st.button("Submit"):
-            if not Plain.strip():
-                st.write("Fill in all fields first")
-            else :
-                key = np.array(key)
-                if operation == "Encryption":
-                    result = encrypt(Plain, key)
-                    st.write("Encrypted Result:", result)
-                elif operation == "Decryption":
-                    result = decrypt(Plain, key)
-                    st.write("Decrypted Result:", result)
-                    
 
 
 if __name__ == "__main__":
