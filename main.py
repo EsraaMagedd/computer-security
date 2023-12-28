@@ -346,6 +346,12 @@ def decrypt(ciphertext, key):
 
 # ------------------------------------------------------------------------------------------------------------
 # monoalphabetic_substitution
+def monoalphabetic_substitution_generate_key(base_key):
+    base_key = remove_spaces(base_key.upper())
+    remaining_chars = "".join(chr(ord("A") + i) for i in range(26) if chr(ord("A") + i) not in base_key)
+    return base_key + remaining_chars
+
+
 def monoalphabetic_substitution(text, key, decrypt=False):
     text = remove_spaces(text).upper()
     result = ""
@@ -363,10 +369,21 @@ def monoalphabetic_substitution(text, key, decrypt=False):
         else:
             result += char
 
-    return result
+    return result.lower() if text.islower() else result
+
 
 def monoalphabetic_substitution_decrypt(text, key):
-    return monoalphabetic_substitution(text, key, decrypt=True)
+    text = remove_spaces(text).upper()
+    result = ""
+
+    for char in text:
+        if char.isalpha():
+            index = ord(char) - ord('A')
+            result += chr((key.find(char) + ord('A')))
+        else:
+            result += char
+
+    return result.lower() if text.islower() else result
 
 def remove_spaces(text):
     return ''.join(char for char in text if char.isalnum())
@@ -401,18 +418,20 @@ def main():
                     result = caesar_decipher(Plain, int(key))
                     st.write("Decrypted Result:", result)
     elif algorithm_choice == "Monoalphabetic Substitution":
-        key = st.text_input("Enter the substitution key (26 unique letters):").upper()
+        key = st.text_input("Enter the substitution key:").upper()
 
         if st.button("Submit"):
-            if not Plain.strip() or not key.strip() or len(key) != 26 or not key.isalpha():
+            if not Plain.strip() or not key.strip() or not key.isalpha():
                 st.write("Invalid key. Please enter a valid substitution key.")
             else:
+                key = monoalphabetic_substitution_generate_key(key)
                 if operation == "Encryption":
                     result = monoalphabetic_substitution(Plain, key)
+                    st.write("Encrypted Result:", result)
                 elif operation == "Decryption":
-                    monoalphabetic_substitution_decrypt(Plain,key)
+                    result = monoalphabetic_substitution_decrypt(Plain, key)
+                    st.write("Decrypted Result:", result)
 
-                st.write("Result:", result)
 
     elif algorithm_choice == "Playfair Cipher":
         key = st.text_input("Enter the key (string):")
@@ -479,6 +498,11 @@ def main():
                 else:
                     result = Vernam(Plain, Key, False)
                     st.write("Decrypted Result:", result)
+
+
+
+
+
 
 
 
